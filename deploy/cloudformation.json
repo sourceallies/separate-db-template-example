@@ -1,0 +1,451 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Example App Template",
+    "Parameters": {
+        "AppEnv": {
+            "Type": "String",
+            "Default": "production"
+        },
+        "Image": {
+            "Type": "String"
+        },
+        "Version": {
+            "Type": "String"
+        },
+        "HostedZone": {
+            "Type": "String"
+        },
+        "DNSName": {
+            "Type": "String"
+        },
+        "DBUser": {
+            "Description": "Username for the database",
+            "Type": "String",
+            "Default": "ares_tgs"
+        },
+        "DBPassword": {
+            "Description": "Password for the database",
+            "Type": "String",
+            "NoEcho": "true"
+        },
+        "DBName": {
+            "Type": "String",
+            "Default": "ares_tickets"
+        },
+        "VpcId": {
+            "Type": "AWS::EC2::VPC::Id",
+            "Description": "Id of the VPC to deploy to"
+        },
+        "SubnetIds": {
+            "Type": "List<AWS::EC2::Subnet::Id>",
+            "Description": "List of subnet Ids to run in"
+        }
+    },
+    "Resources": {
+        "ECSDefaultCluster": {
+            "Type": "Custom::StackOutput",
+            "Properties": {
+                "ServiceToken": {
+                    "Fn::Join": [
+                        ":",
+                        [
+                            "arn:aws:lambda:us-east-1",
+                            {
+                                "Ref": "AWS::AccountId"
+                            },
+                            "function:GetStackOutputs"
+                        ]
+                    ]
+                },
+                "StackName": "ECSDefaultCluster",
+                "Version": {
+                    "Ref": "Version"
+                }
+            }
+        },
+        "BaseNetworking": {
+            "Type": "Custom::StackOutput",
+            "Properties": {
+                "ServiceToken": {
+                    "Fn::Join": [
+                        ":",
+                        [
+                            "arn:aws:lambda:us-east-1",
+                            {
+                                "Ref": "AWS::AccountId"
+                            },
+                            "function:GetStackOutputs"
+                        ]
+                    ]
+                },
+                "StackName": "BaseNetworking",
+                "Version": {
+                    "Ref": "Version"
+                }
+            }
+        },
+        "Database" : {
+            "Type" : "AWS::RDS::DBInstance",
+            "Properties" : {
+                "DBInstanceClass" : "db.t2.micro",
+                "Engine" : "MySQL",
+                "EngineVersion" : "5.7",
+                "MasterUsername" : { "Ref" : "DBUser" },
+                "MasterUserPassword" : { "Ref" : "DBPassword" },
+                "DBName": { "Ref" : "DBName" },
+                "PubliclyAccessible": "false",
+                "AllocatedStorage" : "100"
+            },
+            "DeletionPolicy" : "Snapshot"
+        },
+        "RDSParamGroup": {
+            "Type": "AWS::RDS::DBParameterGroup",
+            "Properties": {
+                "Description": "RDS Database Paramters",
+                "Family": "MySQL5.7",
+                "Parameters": {
+                    "max_allowed_packet": "1073741824",
+                    "table_open_cache": "250"
+                }
+            }
+        },
+        "AppService": {
+            "Type": "AWS::ECS::Service",
+            "Metadata": {
+                "Version": {
+                    "Ref": "Version"
+                }
+            },
+            "Properties": {
+                "Cluster": {
+                    "Fn::GetAtt": [
+                        "ECSDefaultCluster",
+                        "ClusterName"
+                    ]
+                },
+                "LaunchType": "FARGATE",
+                "NetworkConfiguration": {
+                    "AwsvpcConfiguration": {
+                        "Subnets": { "Ref": "SubnetIds" },
+                        "AssignPublicIp": "ENABLED"
+                    }
+                },
+                "DesiredCount": 1,
+                "LoadBalancers": [
+                    {
+                        "ContainerName": "ares-ticket-generation",
+                        "ContainerPort": 80,
+                        "TargetGroupArn": {
+                            "Ref": "TargetGroup"
+                        }
+                    }
+                ],
+                "TaskDefinition": {
+                    "Ref": "TicketGenerationTaskDefinition"
+                },
+                "DeploymentConfiguration": {
+                    "MinimumHealthyPercent": "1",
+                    "MaximumPercent": "200"
+                }
+            }
+        },
+        "AppServiceScaleTarget": {
+            "Type" : "AWS::ApplicationAutoScaling::ScalableTarget",
+            "Condition": "ScaleDownOffHours",
+            "Properties" : {
+                "MaxCapacity" : 1,
+                "MinCapacity" : 0,
+                "ScheduledActions": [
+                    {
+                        "ScheduledActionName": "Down",
+                        "StartTime": "2018-01-03T00:00:00Z",
+                        "EndTime": "2999-01-03T00:00:00Z",
+                        "ScalableTargetAction": {
+                            "MaxCapacity": 0,
+                            "MinCapacity": 0
+                        },
+                        "Schedule": "cron(0 1 * * ? *)"
+                    }
+                ],
+                "ResourceId" : {
+                    "Fn::Sub": "service/${ECSDefaultCluster.ClusterName}/${AppService.Name}"
+                },
+                "RoleARN" : {
+                    "Fn::Sub": "arn:aws:iam::${AWS::AccountId}:role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService"
+                },
+                "ScalableDimension" : "ecs:service:DesiredCount",
+                "ServiceNamespace" : "ecs"
+            }
+          },
+        "AppTaskDefinition": {
+            "Type": "AWS::ECS::TaskDefinition",
+            "Properties": {
+                "Cpu": 256,
+                "Memory": 512,
+                "ExecutionRoleArn": {"Fn::ImportValue" : "ECSDefaultCluster-ClusterInstanceRole" },
+                "TaskRoleArn": {
+                    "Fn::GetAtt": [
+                        "S3Role",
+                        "Arn"
+                    ]
+                },
+                "NetworkMode": "awsvpc",
+                "RequiresCompatibilities": ["FARGATE"],
+                "ContainerDefinitions": [
+                    {
+                        "Name": "separate-template-app",
+                        "Essential": "true",
+                        "Image": {
+                            "Ref": "Image"
+                        },
+                        "PortMappings": [
+                            {
+                                "ContainerPort": 80
+                            }
+                        ],
+                        "LogConfiguration": {
+                            "LogDriver": "awslogs",
+                            "Options": {
+                                "awslogs-group": {
+                                    "Ref": "LogGroup"
+                                },
+                                "awslogs-region": "us-east-1",
+                                "awslogs-stream-prefix": "separate-template-app"
+                            }
+                        },
+                        "Environment": [
+                            {
+                                "Name": "APP_ENV",
+                                "Value": {
+                                    "Ref": "AppEnv"
+                                }
+                            },
+                            {
+                                "Name": "SESSION_DRIVER",
+                                "Value": "file"
+                            },
+                            {
+                                "Name": "DB_HOST",
+                                "Value": {
+                                    "Fn::GetAtt": [
+                                        "Database",
+                                        "Endpoint.Address"
+                                    ]
+                                }
+                            },
+                            {
+                                "Name": "DB_PORT",
+                                "Value": {
+                                    "Fn::GetAtt": [
+                                        "Database",
+                                        "Endpoint.Port"
+                                    ]
+                                }
+                            },
+                            {
+                                "Name": "DB_USERNAME",
+                                "Value": {
+                                    "Ref": "DBUser"
+                                }
+                            },
+                            {
+                                "Name": "DB_PASSWORD",
+                                "Value": {
+                                    "Ref": "DBPassword"
+                                }
+                            },
+                            {
+                                "Name": "DB_DATABASE",
+                                "Value": {
+                                    "Ref": "DBName"
+                                }
+                            },
+                            {
+                                "Name": "RESOLVE_AWS_CREDENTIALS",
+                                "Value": "False"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "MigrationTaskDefinition": {
+            "Type": "AWS::ECS::TaskDefinition",
+            "Properties": {
+                "Cpu": 256,
+                "Memory": 512,
+                "ExecutionRoleArn": {"Fn::ImportValue" : "ECSDefaultCluster-ClusterInstanceRole" },
+                "TaskRoleArn": {"Fn::ImportValue" : "ECSDefaultCluster-ClusterInstanceRole" },
+                "Family": "ARES-ticket-generation-migration",
+                "NetworkMode": "awsvpc",
+                "RequiresCompatibilities": ["FARGATE"],
+                "ContainerDefinitions": [
+                    {
+                        "Name": "separate-template-migration",
+                        "Essential": "true",
+                        "Image": {
+                            "Ref": "Image"
+                        },
+                        "EntryPoint": [
+                            "./migrateAndSeed.sh"
+                        ],
+                        "LogConfiguration": {
+                            "LogDriver": "awslogs",
+                            "Options": {
+                                "awslogs-group": {
+                                    "Ref": "LogGroup"
+                                },
+                                "awslogs-region": "us-east-1",
+                                "awslogs-stream-prefix": "separate-template-migration"
+                            }
+                        },
+                        "Environment": [
+                            {
+                                "Name": "APP_ENV",
+                                "Value": {
+                                    "Ref": "AppEnv"
+                                }
+                            },
+                            {
+                                "Name": "DB_CONNECTION",
+                                "Value": "mysql"
+                            },
+                            {
+                                "Name": "DB_HOST",
+                                "Value": {
+                                    "Fn::GetAtt": [
+                                        "Database",
+                                        "Endpoint.Address"
+                                    ]
+                                }
+                            },
+                            {
+                                "Name": "DB_PORT",
+                                "Value": {
+                                    "Fn::GetAtt": [
+                                        "Database",
+                                        "Endpoint.Port"
+                                    ]
+                                }
+                            },
+                            {
+                                "Name": "DB_USERNAME",
+                                "Value": {
+                                    "Ref": "DBUser"
+                                }
+                            },
+                            {
+                                "Name": "DB_PASSWORD",
+                                "Value": {
+                                    "Ref": "DBPassword"
+                                }
+                            },
+                            {
+                                "Name": "DB_DATABASE",
+                                "Value": {
+                                    "Ref": "DBName"
+                                }
+                            },
+                            {
+                                "Name": "API_USERNAME",
+                                "Value": {
+                                    "Ref": "ApiUsername"
+                                }
+                            },
+                            {
+                                "Name": "API_PASSWORD",
+                                "Value": {
+                                    "Ref": "ApiPassword"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "LoadBalancerV2": {
+            "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+            "Properties": {
+                "Subnets": { "Ref": "SubnetIds" },
+                "SecurityGroups": [
+                    {
+                        "Fn::GetAtt": [
+                            "BaseNetworking",
+                            "PublicSecurityGroupId"
+                        ]
+                    }
+                ]
+            }
+        },
+        "LBListener": {
+            "Type": "AWS::ElasticLoadBalancingV2::Listener",
+            "Properties": {
+                "DefaultActions": [{
+                    "Type": "forward",
+                    "TargetGroupArn": {"Ref": "TargetGroup" }
+                }],
+                "LoadBalancerArn": {"Ref": "LoadBalancerV2" },
+                "Port": 443,
+                "Protocol": "HTTPS",
+                "Certificates": [{
+                    "CertificateArn": { "Fn::ImportValue": {
+                        "Fn::Sub": "ARES-certificate-ARESSSLCert"
+                    } }
+                }]
+            }
+        },
+        "HTTPListener": {
+            "Type": "AWS::ElasticLoadBalancingV2::Listener",
+            "Properties": {
+                "DefaultActions": [{
+                    "Type": "forward",
+                    "TargetGroupArn": {"Ref": "TargetGroup" }
+                }],
+                "LoadBalancerArn": {"Ref": "LoadBalancerV2" },
+                "Port": 80,
+                "Protocol": "HTTP"
+            }
+        },
+        "TargetGroup": {
+            "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+            "DependsOn": ["LoadBalancerV2"],
+            "Properties": {
+                "TargetType": "ip",
+                "VpcId": {"Ref": "VpcId" },
+                "Protocol": "HTTP",
+                "Port": 80,
+                "HealthCheckPath": "/",
+                "HealthCheckProtocol": "HTTP",
+                "HealthCheckIntervalSeconds": 10,
+                "HealthCheckTimeoutSeconds": 5,
+                "HealthyThresholdCount": 2,
+                "UnhealthyThresholdCount": 5,
+                "TargetGroupAttributes": [{
+                    "Key": "deregistration_delay.timeout_seconds",
+                    "Value": 30
+                }]
+            }
+        },
+        "LogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+                "RetentionInDays": 30
+            }
+        }
+    },
+    "Outputs": {
+        "MigrationTaskDefinition" : {
+            "Description": "The ARN of the Migration Task Definition",
+            "Value" : { "Ref" : "MigrationTaskDefinition" }
+        },
+        "ECSDefaultCluster" : {
+            "Description": "The ARN of the ECS Cluster",
+            "Value" : {
+                "Fn::GetAtt": [
+                    "ECSDefaultCluster",
+                    "ClusterName"
+                ]
+            }
+        }
+    }
+}

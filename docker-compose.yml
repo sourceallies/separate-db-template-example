@@ -1,0 +1,36 @@
+version: '3'
+
+services:
+
+    server:
+        build:
+            context: .
+        environment:
+            APP_ENV: local
+        ports:
+            - "80:80"
+        volumes:
+            - ./src:/var/www/app
+            - ./src/storage/logs/nginx:/var/log/nginx
+
+    migrations:
+        build:
+            context: .
+        depends_on:
+            - "mysql"
+        volumes:
+            - ./src:/var/www/app
+        environment:
+            APP_ENV: local
+        entrypoint:
+            - ./migrate.sh
+
+    mysql:
+        image: mysql:latest
+        environment:
+            MYSQL_DATABASE: development
+            MYSQL_USER: developer
+            MYSQL_PASSWORD: secret
+            MYSQL_ROOT_PASSWORD: root
+        ports:
+            - "3306:3306"

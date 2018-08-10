@@ -1,0 +1,99 @@
+2018-08-10 19:57:55,818 CRIT Supervisor running as root (no user in config file)
+2018-08-10 19:57:55,829 INFO supervisord started with pid 6
+2018-08-10 19:57:56,833 INFO spawned: 'php-fpm' with pid 9
+2018-08-10 19:57:56,835 INFO spawned: 'nginx' with pid 10
+2018-08-10 19:57:56,838 INFO spawned: 'lumen-log' with pid 11
+2018-08-10 19:57:56,841 INFO spawned: 'nginx-log-access' with pid 12
+2018-08-10 19:57:56,844 INFO spawned: 'nginx-log-error' with pid 13
+2018-08-10 19:57:56,866 INFO exited: lumen-log (exit status 1; not expected)
+2018-08-10 19:57:56,884 INFO exited: nginx-log-access (exit status 1; not expected)
+2018-08-10 19:57:56,896 INFO exited: nginx (exit status 1; not expected)
+2018-08-10 19:57:57,922 INFO success: php-fpm entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2018-08-10 19:57:57,925 INFO spawned: 'nginx' with pid 16
+2018-08-10 19:57:57,927 INFO spawned: 'lumen-log' with pid 17
+2018-08-10 19:57:57,931 INFO spawned: 'nginx-log-access' with pid 18
+2018-08-10 19:57:57,932 INFO success: nginx-log-error entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2018-08-10 19:57:57,952 INFO exited: nginx-log-access (exit status 1; not expected)
+2018-08-10 19:57:57,959 INFO exited: lumen-log (exit status 1; not expected)
+2018-08-10 19:57:57,966 INFO exited: nginx (exit status 1; not expected)
+2018-08-10 19:58:00,881 INFO spawned: 'nginx' with pid 19
+2018-08-10 19:58:00,884 INFO spawned: 'lumen-log' with pid 20
+2018-08-10 19:58:00,886 INFO spawned: 'nginx-log-access' with pid 21
+2018-08-10 19:58:00,922 INFO exited: lumen-log (exit status 1; not expected)
+2018-08-10 19:58:00,929 INFO exited: nginx-log-access (exit status 1; not expected)
+2018-08-10 19:58:00,934 INFO exited: nginx (exit status 1; not expected)
+2018-08-10 19:58:04,887 INFO spawned: 'nginx' with pid 22
+2018-08-10 19:58:04,891 INFO spawned: 'lumen-log' with pid 23
+2018-08-10 19:58:04,897 INFO spawned: 'nginx-log-access' with pid 24
+2018-08-10 19:58:04,901 INFO exited: lumen-log (exit status 1; not expected)
+2018-08-10 19:58:04,917 INFO exited: nginx-log-access (exit status 1; not expected)
+2018-08-10 19:58:04,927 INFO gave up: nginx-log-access entered FATAL state, too many start retries too quickly
+2018-08-10 19:58:04,931 INFO exited: nginx (exit status 1; not expected)
+2018-08-10 19:58:05,886 INFO gave up: nginx entered FATAL state, too many start retries too quickly
+2018-08-10 19:58:09,910 INFO spawned: 'lumen-log' with pid 25
+2018-08-10 19:58:09,942 INFO exited: lumen-log (exit status 1; not expected)
+2018-08-10 19:58:14,953 INFO spawned: 'lumen-log' with pid 26
+2018-08-10 19:58:14,958 INFO exited: lumen-log (exit status 1; not expected)
+2018-08-10 19:58:20,973 INFO spawned: 'lumen-log' with pid 27
+2018-08-10 19:58:20,979 INFO exited: lumen-log (exit status 1; not expected)
+2018-08-10 19:58:28,964 INFO spawned: 'lumen-log' with pid 28
+2018-08-10 19:58:28,971 INFO exited: lumen-log (exit status 1; not expected)
+2018-08-10 19:58:36,992 INFO spawned: 'lumen-log' with pid 29
+2018-08-10 19:58:36,999 INFO exited: lumen-log (exit status 1; not expected)
+2018-08-10 19:58:46,016 INFO spawned: 'lumen-log' with pid 30
+2018-08-10 19:58:46,024 INFO exited: lumen-log (exit status 1; not expected)
+2018-08-10 19:58:57,014 INFO spawned: 'lumen-log' with pid 31
+2018-08-10 19:58:57,020 INFO exited: lumen-log (exit status 1; not expected)
+2018-08-10 19:58:58,023 INFO gave up: lumen-log entered FATAL state, too many start retries too quickly
+2018-08-10 19:59:57,293 CRIT Supervisor running as root (no user in config file)
+2018-08-10 19:59:57,313 INFO supervisord started with pid 7
+2018-08-10 19:59:58,324 INFO spawned: 'php-fpm' with pid 10
+2018-08-10 19:59:58,337 INFO spawned: 'nginx' with pid 11
+2018-08-10 19:59:58,351 INFO spawned: 'lumen-log' with pid 12
+2018-08-10 19:59:58,373 INFO spawned: 'nginx-log-access' with pid 13
+2018-08-10 19:59:58,413 INFO spawned: 'nginx-log-error' with pid 14
+2018-08-10 19:59:58,443 INFO exited: nginx-log-access (exit status 1; not expected)
+2018-08-10 19:59:58,476 INFO exited: nginx (exit status 1; not expected)
+2018-08-10 19:59:59,411 INFO success: php-fpm entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2018-08-10 19:59:59,413 INFO success: lumen-log entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2018-08-10 19:59:59,414 INFO success: nginx-log-error entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2018-08-10 20:00:00,418 INFO spawned: 'nginx' with pid 17
+2018-08-10 20:00:00,428 INFO spawned: 'nginx-log-access' with pid 18
+2018-08-10 20:00:00,432 INFO exited: nginx (exit status 1; not expected)
+2018-08-10 20:00:00,437 INFO exited: nginx-log-access (exit status 1; not expected)
+2018-08-10 20:00:02,493 INFO spawned: 'nginx' with pid 19
+2018-08-10 20:00:02,496 INFO spawned: 'nginx-log-access' with pid 20
+2018-08-10 20:00:02,504 INFO exited: nginx-log-access (exit status 1; not expected)
+2018-08-10 20:00:02,509 INFO exited: nginx (exit status 1; not expected)
+2018-08-10 20:00:06,502 INFO spawned: 'nginx' with pid 21
+2018-08-10 20:00:06,505 INFO spawned: 'nginx-log-access' with pid 22
+2018-08-10 20:00:06,513 INFO exited: nginx-log-access (exit status 1; not expected)
+2018-08-10 20:00:06,516 INFO gave up: nginx-log-access entered FATAL state, too many start retries too quickly
+2018-08-10 20:00:06,518 INFO exited: nginx (exit status 1; not expected)
+2018-08-10 20:00:07,502 INFO gave up: nginx entered FATAL state, too many start retries too quickly
+2018-08-10 20:03:05,333 CRIT Supervisor running as root (no user in config file)
+2018-08-10 20:03:05,373 INFO supervisord started with pid 6
+2018-08-10 20:03:06,379 INFO spawned: 'php-fpm' with pid 9
+2018-08-10 20:03:06,382 INFO spawned: 'nginx' with pid 10
+2018-08-10 20:03:06,384 INFO spawned: 'lumen-log' with pid 11
+2018-08-10 20:03:06,387 INFO spawned: 'nginx-log-access' with pid 12
+2018-08-10 20:03:06,390 INFO spawned: 'nginx-log-error' with pid 13
+2018-08-10 20:03:06,419 INFO exited: nginx-log-access (exit status 1; not expected)
+2018-08-10 20:03:06,439 INFO exited: nginx (exit status 1; not expected)
+2018-08-10 20:03:07,422 INFO success: php-fpm entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2018-08-10 20:03:07,422 INFO success: lumen-log entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2018-08-10 20:03:07,425 INFO spawned: 'nginx-log-access' with pid 16
+2018-08-10 20:03:07,427 INFO success: nginx-log-error entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2018-08-10 20:03:07,445 INFO spawned: 'nginx' with pid 17
+2018-08-10 20:03:07,448 INFO exited: nginx-log-access (exit status 1; not expected)
+2018-08-10 20:03:07,477 INFO exited: nginx (exit status 1; not expected)
+2018-08-10 20:03:10,450 INFO spawned: 'nginx' with pid 18
+2018-08-10 20:03:10,453 INFO spawned: 'nginx-log-access' with pid 19
+2018-08-10 20:03:10,461 INFO exited: nginx-log-access (exit status 1; not expected)
+2018-08-10 20:03:10,463 INFO exited: nginx (exit status 1; not expected)
+2018-08-10 20:03:14,459 INFO spawned: 'nginx' with pid 20
+2018-08-10 20:03:14,462 INFO spawned: 'nginx-log-access' with pid 21
+2018-08-10 20:03:14,470 INFO exited: nginx-log-access (exit status 1; not expected)
+2018-08-10 20:03:14,471 INFO gave up: nginx-log-access entered FATAL state, too many start retries too quickly
+2018-08-10 20:03:14,473 INFO exited: nginx (exit status 1; not expected)
+2018-08-10 20:03:15,466 INFO gave up: nginx entered FATAL state, too many start retries too quickly
